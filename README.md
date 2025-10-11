@@ -8,7 +8,7 @@ This project simulates an internal IT helpdesk for the fictional *Northgate Inst
 ## Purpose
 
 This project demonstrates how to deploy a **self-hosted LLM** that can answer IT helpdesk questions using internal documentation.  
-We selected **Llama 3.1 8B Instruct** because it offers strong reasoning, a long context window for document retrieval (128K tokens), and smooth compatibility with **Ollama** and **Open WebUI**.  
+We selected **Llama 3.1 8B Instruct** because it offers strong reasoning, a long context window for document retrieval, and smooth compatibility with **Ollama** and **Open WebUI**.  
 The model runs efficiently on a single GPU droplet and supports multiple concurrent users.
 
 ---
@@ -36,8 +36,7 @@ In the DigitalOcean console:
 4. Add your **SSH keys**   
 5. Name: `northgate-gpu-portal`  
 
-SSH into droplet:
-```bash
+# --- STEP 1: SSH into droplet:
 ssh -i ~/.ssh/id_ed25519 root@167.99.190.27
 apt update && apt upgrade -y
 
