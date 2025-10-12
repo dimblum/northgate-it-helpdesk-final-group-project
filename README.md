@@ -43,13 +43,13 @@ apt update && apt upgrade -y
 # --- STEP 2: Install Docker Engine and Docker Compose ---
 apt -y install curl ca-certificates gnupg
 
-# Get the official Docker install script
+Get the official Docker install script
 curl -fsSL https://get.docker.com | sh
 
-# Enable and start Docker
+Enable and start Docker
 systemctl enable docker --now
 
-# Verify Docker and Compose versions
+Verify Docker and Compose versions
 docker --version
 docker compose version || true
 
@@ -61,12 +61,12 @@ lspci | grep -i nvidia
 apt -y install ubuntu-drivers-common
 ubuntu-drivers autoinstall
 
-# Add CUDA repo for up-to-date drivers
+Add CUDA repo for up-to-date drivers
 curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -o cuda-keyring.deb
 dpkg -i cuda-keyring.deb
 apt update && apt -y install cuda-drivers-550
 
-# Reboot to activate drivers
+Reboot to activate drivers
 reboot
 
 # --- Confirm GPU and driver ---
@@ -162,11 +162,10 @@ docker exec -it ollama ollama pull llama3.1:8b
 docker exec -it ollama ollama run llama3.1:8b "Say 'Northgate is online and running.'"
 
 # --- STEP 7: Access the web interface in a browser ---
-# URL:
-#   http://167.99.190.27
-# Setup steps:
-#   1. Create an admin account.
-#   2. Go to Settings → Providers → Ollama.
-#   3. Set OLLAMA_BASE_URL=http://ollama:11434
-#   4. Choose model: llama3.1:8b
-#   5. Disable self-signup for internal use.
+URL:http://167.99.190.27
+Setup steps:
+1. Create an admin account.
+2. Select Workspaces, add new model, select llama3.1:8b as basemodel
+3. Upload Knowledge Base articles to model
+4. Disable self-signup for internal use.
+5. Create user accounts for helpdesk specialists
