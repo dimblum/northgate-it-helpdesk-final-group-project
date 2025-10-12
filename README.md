@@ -37,98 +37,98 @@ In the DigitalOcean console:
 5. Name: `northgate-gpu-portal`  
 
 STEP 1: SSH into the droplet and update the system
-Connect to your droplet:
+Connect to your droplet:  
 ssh -i ~/.ssh/id_ed25519 root@167.99.190.27
 
-Update and upgrade packages:
+Update and upgrade packages:  
 apt update && apt upgrade -y
 
-Install helpful utilities:
+Install helpful utilities:  
 apt -y install curl ca-certificates gnupg jq
 
 
 
 STEP 2: Install Docker Engine and Compose plugin
-Install Docker:
+Install Docker:  
 curl -fsSL https://get.docker.com | sh
 
-Enable Docker to start automatically:
+Enable Docker to start automatically:  
 systemctl enable docker --now
 
-Verify Docker and Compose:
+Verify Docker and Compose:  
 docker --version
 docker compose version || true
 
 
 STEP 3: Install NVIDIA driver (CUDA 550) and verify GPU
-Check that the GPU is visible:
+Check that the GPU is visible:  
 lspci | grep -i nvidia
 
-Add NVIDIA CUDA repository keyring:
+Add NVIDIA CUDA repository keyring:  
 curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -o cuda-keyring.deb
 dpkg -i cuda-keyring.deb
 apt update
 
-Install the 550 driver (works for L40S / RTX 6000 Ada):
+Install the 550 driver (works for L40S / RTX 6000 Ada):  
 apt -y install cuda-drivers-550
 
-Reboot and reconnect:
+Reboot and reconnect:  
 reboot
 (After about a minute, reconnect)
 ssh -i ~/.ssh/id_ed25519 root@167.99.190.27
 
-Verify driver and GPU:
+Verify driver and GPU:  
 nvidia-smi
 
 STEP 4: Install NVIDIA Container Toolkit for Docker GPU access
-Record Ubuntu version for repo setup:
+Record Ubuntu version for repo setup:  
 distribution=$(. /etc/os-release; echo ${ID}${VERSION_ID})
 
-Add NVIDIA GPG key and repository:
+Add NVIDIA GPG key and repository:  
 curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit.gpg
 curl -fsSL https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list \
  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit.gpg] https://#' \
  | tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
-Install the toolkit and configure Docker runtime:
+Install the toolkit and configure Docker runtime:  
 apt update && apt -y install nvidia-container-toolkit
 nvidia-ctk runtime configure --runtime=docker
 
-Restart Docker and test GPU inside containers:
+Restart Docker and test GPU inside containers:  
 systemctl restart docker
 docker run --rm --gpus all nvidia/cuda:12.3.2-base-ubuntu22.04 nvidia-smi
 
 STEP 5: Deploy the LLM stack (Ollama + Open WebUI + Caddy)
-Move to the project directory:
+Move to the project directory:  
 cd /opt/llm
 
-Start all containers in the background:
+Start all containers in the background:  
 docker compose up -d
 
-Show running containers and ports:
+Show running containers and ports:  
 docker compose ps
 
-View recent logs if needed:
+View recent logs if needed:  
 docker logs open-webui --tail=50
 docker logs ollama --tail=50
 docker logs caddy --tail=50
 
 STEP 6: Pull the Llama 3.1 model and test it
-Open a shell inside the Ollama container:
+Open a shell inside the Ollama container:  
 docker exec -it ollama bash
 
-Download the 8B model weights:
+Download the 8B model weights:  
 ollama pull llama3.1:8b
 
-Quick inference test:
+Quick inference test:  
 ollama run llama3.1:8b "Say 'Northgate is online and running.'"
 
-Exit the container:
+Exit the container:  
 exit
 
 
 
-# --- STEP 7: Access the web interface in a browser ---
+STEP 7: Access the web interface in a browser
 URL:http://167.99.190.27
 Setup steps:
 1. Create an admin account.
@@ -138,7 +138,7 @@ Setup steps:
 5. Create user accounts for helpdesk specialists
 
 
-# --- Deployment Command References (APA 7 format) ---
+Deployment Command References
 
 Docker. (2025). Get Docker Engine – Installation instructions. Docker Docs. https://docs.docker.com/engine/install/
 
