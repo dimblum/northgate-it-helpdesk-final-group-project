@@ -171,7 +171,7 @@ Setup steps:
 5. Create user accounts for helpdesk specialists
 
 
-   Deployment Command References (APA 7 format)
+# --- Deployment Command References (APA 7 format) ---
 
 Docker. (2025). Get Docker Engine – Installation instructions. Docker Docs. https://docs.docker.com/engine/install/
 
