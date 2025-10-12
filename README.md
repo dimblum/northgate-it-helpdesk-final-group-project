@@ -169,3 +169,26 @@ Setup steps:
 3. Upload Knowledge Base articles to model
 4. Disable self-signup for internal use.
 5. Create user accounts for helpdesk specialists
+
+
+   Deployment Command References (APA 7 format)
+
+Docker. (2025). Get Docker Engine – Installation instructions. Docker Docs. https://docs.docker.com/engine/install/
+
+Docker. (2025). Compose overview. Docker Docs. https://docs.docker.com/compose/
+
+NVIDIA. (2025). NVIDIA Container Toolkit documentation. NVIDIA Developer. https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/
+
+NVIDIA. (2025). CUDA Toolkit 12.3 installation guide for Linux. NVIDIA Developer. https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
+
+Caddy. (2025). Getting started with Caddy. Caddy Docs. https://caddyserver.com/docs/getting-started
+
+Ollama. (2025). Running Ollama on Linux. Ollama Docs. https://github.com/ollama/ollama
+
+Open WebUI. (2025). Open WebUI deployment guide. GitHub. https://github.com/open-webui/open-webui
+
+DigitalOcean. (2025). Droplets: Create, manage, and connect. DigitalOcean Docs. https://docs.digitalocean.com/products/droplets/how-to/create/
+
+Ubuntu. (2025). UFW — Uncomplicated Firewall. Ubuntu Documentation. https://help.ubuntu.com/community/UFW
+
+curl. (2025). curl command-line tool documentation. curl.se. https://curl.se/docs/
