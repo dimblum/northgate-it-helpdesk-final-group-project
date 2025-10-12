@@ -36,130 +36,92 @@ In the DigitalOcean console:
 4. Add your **SSH keys**   
 5. Name: `northgate-gpu-portal`  
 
-# --- STEP 1: SSH into droplet:
+# --- STEP 1: SSH into droplet
 ssh -i ~/.ssh/id_ed25519 root@167.99.190.27
 apt update && apt upgrade -y
 
-# --- STEP 2: Install Docker Engine and Docker Compose ---
+# --- STEP 2: Install Docker Engine + Compose plugin
 apt -y install curl ca-certificates gnupg
-
-Get the official Docker install script
 curl -fsSL https://get.docker.com | sh
-
-Enable and start Docker
 systemctl enable docker --now
 
-Verify Docker and Compose versions
+# Verify Docker and Compose
 docker --version
 docker compose version || true
 
 
-# --- STEP 3: Verify GPU presence ---
+# --- STEP 3: Verify GPU is present
 lspci | grep -i nvidia
 
-STEP 3a: Install tested NVIDIA drivers (L40S / RTX 6000 Ada)
-apt -y install ubuntu-drivers-common
-ubuntu-drivers autoinstall
-
-Add CUDA repo for up-to-date drivers
+# --- STEP 3a: Install NVIDIA 550 drivers (L40S / RTX 6000 Ada)
 curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -o cuda-keyring.deb
 dpkg -i cuda-keyring.deb
 apt update && apt -y install cuda-drivers-550
 
-Reboot to activate drivers
+# Reboot to activate drivers, then SSH back in
 reboot
+(after host comes back)
+ssh -i ~/.ssh/id_ed25519 root@167.99.190.27
 
-Confirm GPU and driver
+Confirm GPU + driver
 nvidia-smi
 You should see the L40S GPU with driver 550.xx
 
-# --- STEP 4: Install NVIDIA Container Toolkit for Docker GPU access ---
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+# --- STEP 4: Install NVIDIA Container Toolkit (gives Docker GPU access)
 
-Add repo and keyring
-curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit.gpg
+# Store Ubuntu version ID in a variable (used by NVIDIA's repo URL)
+distribution=$(. /etc/os-release;echo ${ID}${VERSION_ID})
+
+# Add NVIDIA’s public GPG key (verifies downloaded packages)
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+  | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit.gpg
+
+# Add NVIDIA’s software repository for your Ubuntu version
 curl -fsSL https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list \
  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit.gpg] https://#' \
  | tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
-Install and configure runtime
+# Update package list and install the NVIDIA Container Toolkit package
 apt update && apt -y install nvidia-container-toolkit
-nvidia-ctk runtime configure --runtime=docker
+
+# Configure Docker to use the NVIDIA runtime for GPU acceleration
+sudo nvidia-ctk runtime configure --runtime=docker
+
+# Restart Docker to apply runtime configuration changes
 systemctl restart docker
 
-Test GPU inside Docker container
+# Verify that Docker can see and use the GPU (should print NVIDIA driver table)
 docker run --rm --gpus all nvidia/cuda:12.3.2-base-ubuntu22.04 nvidia-smi
 
-# --- STEP 5: Create working directory for deployment ---
-mkdir -p /opt/llm && cd /opt/llm
 
-STEP 5a: Create docker-compose.yml
-cat > docker-compose.yml <<'YAML'
-services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - OLLAMA_NUM_PARALLEL=4
-      - OLLAMA_MAX_LOADED_MODELS=1
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama:/root/.ollama
+# --- STEP 5: Deploy the LLM stack (Ollama + Open WebUI + Caddy)
 
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: open-webui
-    restart: unless-stopped
-    environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
-    depends_on:
-      - ollama
-    ports:
-      - "8080:8080"
-    volumes:
-      - open-webui:/app/backend/data
+# Move to project directory (where docker-compose.yml and Caddyfile are saved)
+cd /opt/llm
 
-  caddy:
-    image: caddy:latest
-    container_name: caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - open-webui
-
-volumes:
-  ollama:
-  open-webui:
-  caddy_data:
-  caddy_config:
-YAML
-
-STEP 5b: Create Caddyfile
-cat > Caddyfile <<'CADDY'
-:80 {
-  encode zstd gzip
-  reverse_proxy open-webui:8080
-}
-CADDY
-
-STEP 5c: Launch all containers
+# Start all containers in detached mode
 docker compose up -d
+
+# List running containers and their port mappings
 docker compose ps
 
-# --- STEP 6: Pull Llama 3.1 8B model via Ollama ---
-docker exec -it ollama ollama pull llama3.1:8b
+# Check logs for any startup errors (optional)
+docker logs open-webui --tail=50
 
-STEP 6b: Test model inference
-docker exec -it ollama ollama run llama3.1:8b "Say 'Northgate is online and running.'"
+# --- STEP 6: Pull the Llama 3.1 model and test it
+
+# Enter the Ollama container interactively
+docker exec -it ollama bash
+
+# Pull the 8B model (downloads weights from Ollama’s library)
+ollama pull llama3.1:8b
+
+# Run a quick inference test to confirm GPU and model work
+ollama run llama3.1:8b "Say 'Northgate is online and running.'"
+
+# Exit the container when finished
+exit
+
 
 # --- STEP 7: Access the web interface in a browser ---
 URL:http://167.99.190.27
